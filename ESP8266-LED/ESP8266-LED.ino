@@ -1,4 +1,12 @@
 /**
+ * Modded to fit my Citroen C5 X7 Ambient Lighting
+ * Modded to save picked color and brightness
+ * Modded to not wait for the WiFi connection
+ * modded handler.js -effectsList = 33; nextButton.onclick behavior;
+ * modded bg.jpg to look like my car
+ * modded index.html added settings in effects_list
+ * Doubled the LEDS.show(); and the FastLED.show(); for them to work properly
+ * Based on :
  * @author   Alexander Voykov <wirekraken>
  * @version  2.0
  * @link     https://github.com/wirekraken/ESP8266-Websockets-LED
@@ -6,6 +14,7 @@
 
 #include <ESP8266WebServer.h> // auto installed after installing ESP boards
 #include <WebSocketsServer.h> // by Markus Settler
+#include <EEPROM.h>
 
 // the SPIFFS upload function is not currently supported on Arduino 2.0
 // use 1.8.x version
@@ -13,22 +22,33 @@
 #include <FS.h>
 #include <FastLED.h> // by Daniel Garcia
 
-#define LED_COUNT 60 // the number of pixels on the strip
-#define DATA_PIN 14 // (D5 nodemcu), important: https://github.com/FastLED/FastLED/wiki/ESP8266-notes
+#define LED_COUNT 17 // the number of pixels on the strip
+#define DATA_PIN 5 // (D1 on WEMOS D1 Mini Pro), important: https://github.com/FastLED/FastLED/wiki/ESP8266-notes
 
 // SSID and password of the access point
-const char* ssid = "HUAWEI-T8xP";
-const char* password = "fBAB4z5Q";
+const char* ssid = "ENTER SSID";
+const char* password = "ENTER PASSWORD";
 
-// static IP address configuration
-IPAddress Ip(192,168,100,10); // IP address for your ESP
-IPAddress Gateway(192,168,100,1); // IP address of the access point
-IPAddress Subnet(255,255,255,0); // subnet mask
+//// This is not needed for my Samsung Note 9
+//// static IP address configuration
+//IPAddress Ip(192,168,100,10); // IP address for your ESP
+//IPAddress Gateway(192,168,100,1); // IP address of the access point
+//IPAddress Subnet(255,255,255,0); // subnet mask
 
 // default values. You will change them via the Web interface
-uint8_t brightness = 25;
+uint8_t  r;
+uint8_t  g;
+uint8_t  b;
+uint8_t brightness;
 uint32_t duration = 10000; // (10s) duration of the effect in the loop
 uint8_t effect = 0;
+
+int SendDataOnce = 1;
+int fadeAmount = 1;
+int startupbright = 0;
+int StartAnim;
+int StartAnimDur = 1;
+int done = 0;
 
 bool isPlay = false;
 bool isLoopEffect = false;
@@ -41,7 +61,6 @@ uint8_t numFavEffects = sizeof(favEffects);
 
 uint32_t lastChange;
 uint8_t currentEffect = 0;
-
 
 CRGBArray<LED_COUNT> leds;
 // variables for basic effects settings
@@ -57,38 +76,52 @@ ESP8266WebServer server; // 80 default
 void setup() {
   Serial.begin(9600);
 
-  // tell FastLED about the LED strip configuration
-  LEDS.addLeds<WS2811, DATA_PIN, GRB>(leds, LED_COUNT);
-  // set the brightness
-  LEDS.setBrightness(brightness);
-  updateColor(0,0,0);
-  LEDS.show(); // set new changes for led
+  // start EEPROM for storing needed values
+  EEPROM.begin(512);
 
-  WiFi.config(Ip, Gateway, Subnet);
-  WiFi.begin(ssid, password);
-  Serial.println("");
-
-  // wait for connection
-  while (WiFi.status() != WL_CONNECTED) { 
-    delay(500);
-    Serial.print(".");
-  }
+  //Read values stored in EEPROM
+  r           = EEPROM.read(0);
+  g           = EEPROM.read(1);
+  b           = EEPROM.read(2);
+  brightness  = EEPROM.read(3);
+  StartAnim   = EEPROM.read(4);
   
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP()); // IP adress assigned to your ESP
+  // tell FastLED about the LED strip configuration
+  LEDS.addLeds<WS2812B, DATA_PIN, GRB>(leds, LED_COUNT);
+
+//// This is not needed because of the startup animations
+//// set the brightness
+//  LEDS.setBrightness(brightness);
+//  updateColor(0,0,0);
+//  LEDS.show(); // set new changes for led
+
+  StartupAnimation();
+  
+//// For reasons mentioned before
+//  WiFi.config(Ip, Gateway, Subnet);
+  WiFi.begin(ssid, password);
+//  Serial.println("");
+//
+//  // wait for connection
+//  while (WiFi.status() != WL_CONNECTED) { 
+//    delay(500);
+//    Serial.print(".");
+//  }
+//  
+//  Serial.print("IP address: ");
+//  Serial.println(WiFi.localIP()); // IP adress assigned to your ESP
 
   server.onNotFound([]() {
     if (!handleFileRead(server.uri())) // check if the file exists in the flash memory, if so, send it
       server.send(404, "text/plain", "404: File Not Found");
   });
-  
+
   SPIFFS.begin(); // mount the SPIFFS file system
   server.begin();
   webSocket.begin();
 
   // binding callback function
-  webSocket.onEvent(webSocketEvent);
-  
+  webSocket.onEvent(webSocketEvent); 
 }
 
 void loop() {
@@ -98,15 +131,13 @@ void loop() {
 
   if (isPlay) {
     String sendData;
-
     if (isLoopEffect) {
       if ((millis() - lastChange) > duration) {
         setFavEffects(favEffects, numFavEffects);
-    
+        
         sendData = "E" + String(currentEffect, DEC);
         webSocket.broadcastTXT(sendData);
         Serial.println("Sent: " + sendData);
-        
       }
     }
     if (isRandom) {
@@ -114,16 +145,15 @@ void loop() {
         lastChange = millis();
         effect = favEffects[random(0, numFavEffects - 1)];
         currentEffect = effect - 1;
-
+        
         sendData = "E" + String(effect, DEC);
         webSocket.broadcastTXT(sendData); // send the number of the current effect
         Serial.println("Sent: " + sendData);
-      
       }
     }
     setEffect(effect);
   }
-
+  
 }
 
 void setFavEffects(const uint8_t *arr, uint8_t count) {
@@ -149,8 +179,30 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
   if (type == WStype_TEXT) {
     Serial.printf("Client[%u] Received: %s\n", num, payload);
     messageHandler(num, payload, length);
+
+  }
+
+// Added next lines for refreshing brightness slider on webpage when loading page
+  if(SendDataOnce){
+    SendDataOnce=0; delay(2500);
+   
+    // Remap 0-255 brightness value to 0-100 and compile string with the needed values
+    int tempBrightness = map(brightness, 0, 255, 0, 100);
+    String temp = "B" + String(tempBrightness);
+    webSocket.broadcastTXT(temp);
+    Serial.println(temp);
     
-  } 
+    // Added next lines for refreshing color picker on webpage when loading page
+    // And making sure that there are no missing zero's in the message
+    String tempR; if( r == 0 ){ tempR = String("00"); } else{ tempR = String(r, HEX); }
+    String tempG; if( g == 0 ){ tempG = String("00"); } else{ tempG = String(g, HEX); }
+    String tempB; if( b == 0 ){ tempB = String("00"); } else{ tempB = String(b, HEX); }
+    temp = "#" + tempR + tempG + tempB;
+    webSocket.broadcastTXT(temp);
+    Serial.println(temp);
+    Serial.println("Data sent to client");
+  }
+  
 }
 
 void messageHandler(uint8_t num, uint8_t * payload, size_t length) {
@@ -176,7 +228,7 @@ void messageHandler(uint8_t num, uint8_t * payload, size_t length) {
 
       sendData = "E" + getData;
       webSocket.broadcastTXT(sendData);
-      
+
       setEffect(effect);
     break;
     // brightness
@@ -186,8 +238,14 @@ void messageHandler(uint8_t num, uint8_t * payload, size_t length) {
 
       sendData = "B" + getData;
       webSocket.broadcastTXT(sendData);
-      
+
       LEDS.setBrightness(brightness);
+      // Added these two for refreshing the brightness without touching color picker
+      LEDS.show();
+      LEDS.show();
+      // Added for storing brightness value 
+      EEPROM.write(3, brightness);
+      EEPROM.commit();
     break;
     // duration
     case 'D':
@@ -243,28 +301,30 @@ void messageHandler(uint8_t num, uint8_t * payload, size_t length) {
     case '#':
       isPlay = false;
       isColorPicker = true;
+      
       // decode HEX to RGB
       uint32_t rgb = (uint32_t) strtol((const char *) &payload[1], NULL, 16);
-      
-      uint8_t r = (rgb >> 16) & 0xFF;
-      uint8_t g = (rgb >>  8) & 0xFF;
-      uint8_t b = (rgb >>  0) & 0xFF;
-      
-      // Serial.println("Client " + String(num) + ": Color: (" + String(r) + "," + String(g) + "," + String(b) + ")");
+
+      r = (rgb >> 16) & 0xFF;
+      g = (rgb >>  8) & 0xFF;
+      b = (rgb >>  0) & 0xFF;
 
       for (int i = 0; i < LED_COUNT; i++) {
         leds[i].setRGB(r,g,b);
       }
       LEDS.show();
       LEDS.show();
-
+      // Added for storing RGB values
+      EEPROM.write(0, r);
+      EEPROM.write(1, g);
+      EEPROM.write(2, b);
+      EEPROM.commit();
+      
       if ((millis() - lastSend) > 2000) { // we send it no more than in 2 seconds
         lastSend = millis();
         sendData = "#" + getData;
-        
       }
       webSocket.broadcastTXT(sendData);
-
     break;
   }
   Serial.println("Sent: " + sendData);
@@ -309,8 +369,11 @@ void setEffect(const uint8_t num) {
     case 30: fadeToCenter(); break;
     case 31: runnerChameleon(); break;
     case 32: blende(); break;
-    case 33: blende_2();
-
+    case 33: blende_2(); break;
+    //Added next effects to change settings
+    case 36: startup(); break;          // Added this for changing startup animation or turn it off
+    case 37: startupDuration(); break;  // Added this for changing startup animation duration
+    case 38: ambient();                 // Added this for simple RGB and brightness values matching my car's ambient lighting
   }
 }
   
@@ -327,7 +390,6 @@ bool handleFileRead(String path) {
     return true;
   }
   return false;
-  
 }
 
 // determine the MIME type of file
@@ -343,5 +405,128 @@ String getContentType(String filename) {
   else if(filename.endsWith(".ico")) return "image/x-icon";
   else if(filename.endsWith(".svg")) return "image/svg+xml";
   return "text/plain";
+}
 
+// Added these effects at startup
+void StartupAnimation(){
+  uint8_t isat = 255;
+  uint8_t ihue = 0;
+  uint8_t bouncedirection = 0;
+  uint8_t idex = 0;
+  static uint8_t hue = 0;
+
+  Serial.println(" ");
+  Serial.print("Startup Animation : "); Serial.print(StartAnim); Serial.print("; with duration: "); Serial.print(StartAnimDur);
+
+  //No startup animation
+  if( StartAnim == 0 ){
+  }
+  
+  //modded rainbowFade animation
+  if( StartAnim == 1 ){
+    for( int Z=0; Z<100*StartAnimDur; Z++){
+        ihue += +5;
+      if (ihue > 255){
+        ihue = 0;
+      }
+      for (int idex = 0 ; idex < LED_COUNT; idex++) {
+        leds[idex] = CHSV(ihue, isat, 255);
+      }
+      LEDS.show();
+      LEDS.show();
+      delay(_delay);
+    }
+  }
+  
+  //modded rainbowFadeLoop animation
+  if( StartAnim == 2 ){
+    for( int Z=0; Z<100*StartAnimDur; Z++){
+        ihue -= 5;
+      fill_rainbow(leds, LED_COUNT, ihue);
+      LEDS.show();
+      LEDS.show();
+      delay(_delay);
+    }
+  }
+  
+  //modded blende animation
+  if( StartAnim == 3 ){
+    for( int Z=0; Z<8*StartAnimDur; Z++){
+      for (int i = 0; i < LED_COUNT; i++) {
+        leds[i] = CHSV(hue++, 255, 255);
+        FastLED.show(); 
+        FastLED.show(); 
+        fadeallfast();
+        delay(10);
+      }
+      for (int i = (LED_COUNT)-1; i >= 0; i--) {
+        leds[i] = CHSV(hue++, 255, 255);
+        FastLED.show();
+        FastLED.show();
+        fadeallfast();
+        delay(10);
+      }
+    }    
+  }
+  
+  //modded colorBounceFade animation
+  if( StartAnim == 4 ){
+    for( int Z=0; Z<32*StartAnimDur; Z++){
+      if (bouncedirection == 0) {
+        idex = idex + 1;
+        if (idex == LED_COUNT) { bouncedirection = 1; idex = idex - 1;  }
+      }
+      
+      if (bouncedirection == 1) {
+        idex = idex - 1;
+        if (idex == 0) { bouncedirection = 0; }
+      }
+      
+      int iL1 = adjacent_cw ( idex ); if( idex == 16 ){ iL1 = 30; }
+      int iL2 = adjacent_cw ( iL1 );  if( idex >  14 ){ iL2 = 30; }
+      int iL3 = adjacent_cw ( iL2 );  if( idex >  13 ){ iL3 = 30; }
+      int iR1 = adjacent_ccw( idex ); if( idex ==  0 ){ iR1 = 30; }
+      int iR2 = adjacent_ccw( iR1 );  if( idex <   2 ){ iR2 = 30; }
+      int iR3 = adjacent_ccw( iR2 );  if( idex <   3 ){ iR3 = 30; }
+      
+      for (int i = 0; i < LED_COUNT; i++ ) {
+        if (i == idex) { leds[i] = CHSV(100, 0, 255); }
+        else if (i == iL1) {  leds[i] = CHSV(100, 0, 150);  }
+        else if (i == iL2) {  leds[i] = CHSV(100, 0, 80);   }
+        else if (i == iL3) {  leds[i] = CHSV(100, 0, 20);   }
+        else if (i == iR1) {  leds[i] = CHSV(100, 0, 150);  }
+        else if (i == iR2) {  leds[i] = CHSV(100, 0, 80);   }
+        else if (i == iR3) {  leds[i] = CHSV(100, 0, 20);   }
+        else {                leds[i] = CHSV(0, 0, 0);      }
+      }
+      
+      LEDS.show();
+      LEDS.show();
+      delay(50);
+    }
+  } 
+  Serial.println(" - Done!");
+  FadeToAmbient();
+}
+
+// Added this fadeup when StartupAnimation() finishes
+void FadeToAmbient(){
+  Serial.print("Fade Up To Ambient");
+  
+  while( done == 0 ){
+    for(int i = 0; i < LED_COUNT; i++ ) { leds[i].setRGB(r,g,b); LEDS.setBrightness(startupbright); }
+    
+    if( startupbright == brightness ) { done = 1; }
+    
+    startupbright += fadeAmount;
+    
+    if( startupbright >  brightness ) { startupbright = brightness; }
+    
+    LEDS.show();
+    LEDS.show();
+    delay(50);
+  }
+  Serial.println(" Done.");
+  done = 0;
+  startupbright = 0;
 }
