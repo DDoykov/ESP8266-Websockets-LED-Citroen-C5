@@ -44,8 +44,6 @@ The first thing you need to do is install the [Arduino IDE](https://www.arduino.
 At the moment, latest Arduino IDE (**2.0**) does not support the file system plugin (required to upload web files to ESP flash memory). See [relevance](https://github.com/arduino/arduino-ide/issues/58).\
 Therefore, you need to install version (**1.8.x**), **however**:
 
-You can try the `simplified version` which does not depend on the file system plugin but with a minimalistic interface. When you are sure everything is working, I strongly recommend installing the main version!
-
 The ESP8266 boards will need to be added to the Arduino IDE which is achieved as [follows](https://github.com/esp8266/Arduino).\
 [The ESP8266 filesystem plugin](https://github.com/esp8266/arduino-esp8266fs-plugin) (you will find the installation instructions in the same place).
 
