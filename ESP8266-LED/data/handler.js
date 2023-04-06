@@ -233,7 +233,6 @@ toggleRandom.onclick = function() {
 	
 	console.log(payload);
 	webSocket.send(payload);
-
 }
 
 prevButton.onclick = function() {
@@ -241,7 +240,7 @@ prevButton.onclick = function() {
 	togglePlay.checked = true;
 
 	if (currentEffect === 1) {
-		currentEffect = effectsList.children.length;
+		currentEffect = effectsList.children.length-5;
 		console.log('one')
 	}
 	else {
@@ -258,13 +257,14 @@ prevButton.onclick = function() {
 
 nextButton.onclick = function() {
 
-	if (!togglePlay.checked) {
-		currentEffect = 0;
-	}
+//	Don't want to start all over again
+//	if (!togglePlay.checked) {
+//		currentEffect = 0;
+//	}
 
 	togglePlay.checked = true;
 	
-	if (currentEffect === effectsList.children.length) {
+	if (currentEffect === effectsList.children.length-5) {
 		currentEffect = 1;
 	}
 	else {
