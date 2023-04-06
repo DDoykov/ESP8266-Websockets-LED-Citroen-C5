@@ -18,10 +18,10 @@ Installing LED strip in existing slots inside the dashboard, where the original 
 * Modded to fit my Citroen C5 X7 Ambient Lighting
 * Modded to save picked color and brightness
 * Modded to not wait for the WiFi connection
-* modded handler.js -effectsList = 33; nextButton.onclick behavior;
-* modded bg.jpg to look like my car
+* modded handler.js -effectsList = 33; nextButton.onclick behavior
+* modded bg.jpg to look like my car. Dropped two more if you want to change it
 * modded index.html added settings in effects_list
-* Doubled the LEDS.show(); and the FastLED.show(); for them to work properly on my crazy ESP8266
+* Doubled every "LEDS.show();" and "FastLED.show();" calls for them to work properly on my crazy ESP8266
 
 ## Hardware
 * ESP8266-based board
