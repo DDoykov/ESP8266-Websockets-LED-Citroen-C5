@@ -1,6 +1,8 @@
 # ESP8266 - Websockets - LED strip
 
-Control an addressable LED strip with an ESP8266 via a Web browser.
+Control an addressable LED strip (ws2811/ws2812/ws2812b) with an ESP8266 via a Web browser. 
+Ambient lighting for Citroen C5 X7. 
+Installing LED strip in existing slots inside the dashboard, where the original lights should be.
 
 <img src="images/mobile-app.jpg" width="250">
 
@@ -12,6 +14,14 @@ Control an addressable LED strip with an ESP8266 via a Web browser.
 * Loop duration adjustment
 * Color change (thanks to [NC22](https://github.com/NC22/HTML5-Color-Picker) for the colorpicker)
 * Selection of different effects (more will be added)
+* 
+* Modded to fit my Citroen C5 X7 Ambient Lighting
+* Modded to save picked color and brightness
+* Modded to not wait for the WiFi connection
+* modded handler.js -effectsList = 33; nextButton.onclick behavior;
+* modded bg.jpg to look like my car
+* modded index.html added settings in effects_list
+* Doubled the LEDS.show(); and the FastLED.show(); for them to work properly on my crazy ESP8266
 
 ## Hardware
 * ESP8266-based board
