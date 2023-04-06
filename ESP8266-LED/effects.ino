@@ -2,18 +2,18 @@ uint8_t idex = 0;
 uint8_t ihue = 0;
 uint8_t isat = 255;
 uint8_t ibright = 0;
-uint16_t TOP_INDEX = uint16_t(LED_COUNT / 2); // center of the stip
+uint16_t TOP_INDEX = uint8_t(LED_COUNT / 2); // center of the stip
 uint8_t EVENODD = LED_COUNT % 2;
 uint8_t bouncedirection = 0;
 int ledsX[LED_COUNT][3]; // array for storing random pixel values
 
-void updateColor (byte r, byte g, byte b) {
-  for (int i = 0; i < LED_COUNT; i++) {
+void updateColor (uint8_t r,uint8_t g,uint8_t b) {
+  for (uint8_t i = 0; i < LED_COUNT; i++) {
     leds[i].setRGB(r,g,b);
   }
 }
 
-void updatePixel (int i, byte r, byte g, byte b) {
+void updatePixel (int i, uint8_t r, uint8_t g, uint8_t b) {
   leds[i].setRGB(r,g,b);
 }
 
@@ -28,10 +28,16 @@ void setAll (byte red, byte green, byte blue) {
     setPixel(i, red, green, blue);
   }
   FastLED.show();
+  FastLED.show();
 }
 void fadeall( ) {
   for (int i = 0; i < LED_COUNT; i++) {
     leds[i].nscale8(250); 
+  } 
+}
+void fadeallfast( ) {
+  for (int i = 0; i < LED_COUNT; i++) {
+    leds[i].nscale8(200); 
   } 
 }
 
@@ -45,6 +51,7 @@ void rainbowFade() {
   for (int idex = 0 ; idex < LED_COUNT; idex++) {
     leds[idex] = CHSV(ihue, isat, 255);
   }
+  LEDS.show();
   LEDS.show();
   delay(_delay);
 }
@@ -62,6 +69,7 @@ void rainbowLoop() {
   }
   leds[idex] = CHSV(ihue, isat, 255);
   LEDS.show();
+  LEDS.show();
   delay(_delay);
 }
 
@@ -77,8 +85,10 @@ void snowSparkle() {
   int pixel = random(LED_COUNT);
   setPixel(pixel, 0xff, 0xff, 0xff);
   FastLED.show();
+  FastLED.show();
   delay(sparkleDelay);
   setPixel(pixel, red, green, blue);
+  FastLED.show();
   FastLED.show();
   delay(speedDelay);
 }
@@ -103,6 +113,7 @@ void radiation() {
     leds[j1] = CHSV(_hue, _sat, ibright);
     leds[j2] = CHSV(_hue, _sat, ibright);
   }
+  LEDS.show();
   LEDS.show();
   delay(_delay);
 }
@@ -131,6 +142,7 @@ void popHorizontal() {
       leds[i].r = 0; leds[i].g = 0; leds[i].b = 0;
     }
   }
+  LEDS.show();
   LEDS.show();
   delay(_delay);
 }
@@ -174,6 +186,7 @@ void pacman() {
     leds[s + 2].r = 0; leds[s + 2].g = 0; leds[s + 2].b = 0;
   }
   LEDS.show();
+  LEDS.show();
   delay(_delay);
 }
 
@@ -183,6 +196,7 @@ void randomBurst() {
   idex = random(0, LED_COUNT);
   ihue = random(0, 255);
   leds[idex] = CHSV(ihue, isat, 255);
+  LEDS.show();
   LEDS.show();
   delay(_delay);
 }
@@ -211,6 +225,7 @@ void colorBounce() {
       leds[i] = CHSV(0, 0, 0);
     }
   }
+  LEDS.show();
   LEDS.show();
   delay(_delay);
 }
@@ -265,6 +280,7 @@ void colorBounceFade() {
     }
   }
   LEDS.show();
+  LEDS.show();
   delay(_delay);
 }
 
@@ -291,6 +307,7 @@ void redBlueBounce() {
     }
   }
   LEDS.show();
+  LEDS.show();
   delay(_delay);
 }
 
@@ -315,6 +332,7 @@ void rotatingRedBlue() {
   leds[idexR] = CHSV(_hue, isat, 255);
   leds[idexB] = CHSV(thathue, isat, 255);
   LEDS.show();
+  LEDS.show();
   delay(_delay);
 }
 
@@ -328,6 +346,7 @@ void flicker() {
     for (int i = 0 ; i < LED_COUNT; i++) {
       leds[i] = CHSV(160, 50, random_bright);
     }
+    LEDS.show();
     LEDS.show();
     delay(random_delay);
   }
@@ -348,6 +367,7 @@ void fadeVertical() {
   }
   leds[idexA] = CHSV(_hue, isat, ibright);
   leds[idexB] = CHSV(_hue, isat, ibright);
+  LEDS.show();
   LEDS.show();
   delay(_delay);
 }
@@ -377,6 +397,7 @@ void random_red() {
     }
     leds[i].b = 0; leds[i].g = 0;
   }
+  LEDS.show();
   LEDS.show();
 }
 
@@ -420,6 +441,7 @@ void rule30() {
     }
   }
   LEDS.show();
+  LEDS.show();
   delay(_delay);
 }
 
@@ -456,6 +478,7 @@ void randomMarch() {
     leds[idex].g = ledsX[iCCW][1];
     leds[idex].b = ledsX[iCCW][2];
   }
+  LEDS.show();
   LEDS.show();
   delay(_delay);
 }
@@ -500,6 +523,7 @@ void rwbMarch() {
     leds[i].b = ledsX[iCCW][2];
   }
   LEDS.show();
+  LEDS.show();
   delay(_delay);
 }
 
@@ -519,6 +543,7 @@ void flame() {
     leds[ih] = CHSV(ihue, isat, 255);
     leds[TOP_INDEX].r = 255; leds[TOP_INDEX].g = 255; leds[TOP_INDEX].b = 255;
     LEDS.show();
+    LEDS.show();
     delay(idelay);
   }
 }
@@ -530,6 +555,7 @@ void randomColorPop(){
   ihue = random(0, 255);
   updateColor(0, 0, 0);
   leds[idex] = CHSV(ihue, isat, 255);
+  LEDS.show();
   LEDS.show();
   delay(_delay);
 }
@@ -548,6 +574,7 @@ void rainbowVertical() {
   leds[idexA] = CHSV(ihue, isat, 255);
   leds[idexB] = CHSV(ihue, isat, 255);
   LEDS.show();
+  LEDS.show();
   delay(_delay);
 }
 
@@ -559,17 +586,17 @@ void policeBlinker() {
     for (int i = 0 ; i < TOP_INDEX; i++) {
       leds[i] = CHSV(_hue, isat, 255);
     }
-    LEDS.show(); delay(_delay);
+    LEDS.show(); LEDS.show(); delay(_delay);
     updateColor(0, 0, 0);
-    LEDS.show(); delay(_delay);
+    LEDS.show(); LEDS.show(); delay(_delay);
   }
   for (int x = 0 ; x < 5; x++) {
     for (int i = TOP_INDEX ; i < LED_COUNT; i++) {
       leds[i] = CHSV(thathue, isat, 255);
     }
-    LEDS.show(); delay(_delay);
+    LEDS.show(); LEDS.show(); delay(_delay);
     updateColor(0, 0, 0);
-    LEDS.show(); delay(_delay);
+    LEDS.show(); LEDS.show(); delay(_delay);
   }
 }
 
@@ -591,6 +618,7 @@ void rgbPropeller() {
     leds[j2] = CHSV(bhue, isat, 255);
   }
   LEDS.show();
+  LEDS.show();
   delay(_delay);
 }
 
@@ -602,11 +630,13 @@ void kitt() {
     leds[TOP_INDEX + i] = CHSV(_hue, isat, 255);
     leds[TOP_INDEX - i] = CHSV(_hue, isat, 255);
     LEDS.show();
+    LEDS.show();
     delay(_delay / rand);
   }
   for (int i = rand; i > 0; i--) {
     leds[TOP_INDEX + i] = CHSV(_hue, isat, 0);
     leds[TOP_INDEX - i] = CHSV(_hue, isat, 0);
+    LEDS.show();
     LEDS.show();
     delay(_delay / rand);
   }
@@ -629,6 +659,7 @@ void matrix() {
     leds[i].b = ledsX[i - 1][2];
   }
   LEDS.show();
+  LEDS.show();
   delay(_delay);
 }
 
@@ -637,6 +668,7 @@ void matrix() {
 void rainbowLoopFade() {
   ihue -= 1;
   fill_rainbow(leds, LED_COUNT, ihue);
+  LEDS.show();
   LEDS.show();
   delay(_delay);
 }
@@ -672,6 +704,7 @@ void fire(int Cooling, int Sparking, int SpeedDelay) {
   }
 
   FastLED.show();
+  FastLED.show();
   delay(SpeedDelay);
 }
 
@@ -706,6 +739,7 @@ void CenterToOutside(byte red, byte green, byte blue, int EyeSize, int SpeedDela
     setPixel(LED_COUNT - i - EyeSize - 1, red / 10, green / 10, blue / 10);
 
     FastLED.show();
+    FastLED.show();
     delay(SpeedDelay);
   }
   delay(ReturnDelay);
@@ -728,6 +762,7 @@ void OutsideToCenter(byte red, byte green, byte blue, int EyeSize, int SpeedDela
     setPixel(LED_COUNT - i - EyeSize - 1, red / 10, green / 10, blue / 10);
 
     FastLED.show();
+    FastLED.show();
     delay(SpeedDelay);
   }
   delay(ReturnDelay);
@@ -742,6 +777,7 @@ void LeftToRight(byte red, byte green, byte blue, int EyeSize, int SpeedDelay, i
     }
     setPixel(i + EyeSize + 1, red / 10, green / 10, blue / 10);
     FastLED.show();
+    FastLED.show();
     delay(SpeedDelay);
   }
   delay(ReturnDelay);
@@ -752,6 +788,7 @@ void LeftToRight(byte red, byte green, byte blue, int EyeSize, int SpeedDelay, i
 void sparkle(byte red, byte green, byte blue, int SpeedDelay) {
   int Pixel = random(LED_COUNT);
   setPixel(Pixel, red, green, blue);
+  FastLED.show();
   FastLED.show();
   delay(SpeedDelay);
   setPixel(Pixel, 0, 0, 0);
@@ -765,6 +802,7 @@ void theaterChase(byte red, byte green, byte blue, int SpeedDelay) {
       for(int i = 0; i < LED_COUNT; i = i + 3) {
         setPixel(i + q, red, green, blue);
       }
+      FastLED.show();
       FastLED.show();
       delay(SpeedDelay);
       for (int i = 0; i < LED_COUNT; i = i + 3) {
@@ -780,8 +818,10 @@ void strobe(byte red, byte green, byte blue, int StrobeCount, int FlashDelay, in
   for (int j = 0; j < StrobeCount; j++) {
     setAll(red, green, blue);
     FastLED.show();
+    FastLED.show();
     delay(FlashDelay);
     setAll(0, 0, 0);
+    FastLED.show();
     FastLED.show();
     delay(FlashDelay);
   }
@@ -814,6 +854,7 @@ void blueFire(int Cooling, int Sparking, int SpeedDelay) {
   for(int j = 0; j < LED_COUNT; j++) {
     setPixelHeatColorBlue(j, heat[j] );
   }
+  FastLED.show();
   FastLED.show();
   delay(SpeedDelay);
 }
@@ -851,6 +892,7 @@ void runnerChameleon() {
   for (int i = 0; i < LED_COUNT; i++) {
     leds[i] = CHSV(hue++, 255, 255);
     FastLED.show(); 
+    FastLED.show(); 
      leds[i] = CRGB::Black;
 //    fadeall();
     delay(10);
@@ -863,7 +905,7 @@ void blende() {
   for (int i = 0; i < LED_COUNT; i++) {
     leds[i] = CHSV(hue++, 255, 255);
     FastLED.show(); 
-//     leds[i] = CRGB::Black;
+    FastLED.show(); 
     fadeall();
     delay(10);
   }
@@ -871,7 +913,7 @@ void blende() {
   for (int i = (LED_COUNT)-1; i >= 0; i--) {
     leds[i] = CHSV(hue++, 255, 255);
     FastLED.show();
-//     leds[i] = CRGB::Black;
+    FastLED.show();
     fadeall();
     delay(10);
   }
@@ -883,6 +925,7 @@ void blende_2() {
   for (int i = 0; i < LED_COUNT; i++) {
     leds[i] = CHSV(hue++, 255, 255);
     FastLED.show(); 
+    FastLED.show(); 
     leds[i] = CRGB::Black;
     fadeall();
     delay(10);
@@ -891,8 +934,56 @@ void blende_2() {
   for (int i = (LED_COUNT)-1; i >= 0; i--) {
     leds[i] = CHSV(hue++, 255, 255);
     FastLED.show();
+    FastLED.show(); 
 //     leds[i] = CRGB::Black;
     fadeall();
     delay(10);
   }
+}
+
+// -------------------------------- STARTUP ANIMATION -------------------------------------
+// Аdded this effect for changing the startup animation
+void startup() {
+  if( StartAnim > 3 ){ StartAnim = 0; }
+  else{ StartAnim++; }
+  EEPROM.write(4, StartAnim);
+  EEPROM.commit();
+  StartupAnimation();
+  isPlay = false;
+}
+
+// -------------------------------- STARTUP ANIMATION DURATION-------------------------------------
+// Аdded this effect for changing the startup animation duration
+void startupDuration() {
+  StartAnimDur++;
+  if( StartAnimDur > 3 ){ StartAnimDur = 1; }
+  EEPROM.write(5, StartAnimDur);
+  EEPROM.commit();
+  StartupAnimation();
+  isPlay = false;
+}
+
+// -------------------------------- AMBIENT LIGHTING -------------------------------------
+// Аdded this effect to quickly set the RGB and brightness values to match my car's ambient lighting
+void ambient() {
+    r = 255;
+    g = 20;
+    b = 0;
+    brightness = 20;
+    
+    EEPROM.write(0, r);
+    EEPROM.write(1, g);
+    EEPROM.write(2, b);
+    EEPROM.write(3, brightness);
+    EEPROM.commit();
+    
+    for (int i = 0; i < LED_COUNT; i++) {
+      leds[i].setRGB(r,g,b);
+    }
+    LEDS.setBrightness(brightness);
+    LEDS.show();
+    LEDS.show();
+
+    isPlay = false;
+    SendDataOnce = 1;
 }
